@@ -340,6 +340,11 @@ run_tests() {
             ./isaaclab.sh -p -c \"import importlib.metadata,json,os,pathlib; from packaging.version import Version; manifest=json.loads(pathlib.Path(os.environ['TEST_WHEELHOUSE_MANIFEST']).read_text(encoding='utf-8')); expected=manifest.get('ovphysx_version'); actual=importlib.metadata.version('ovphysx'); print(f'Resolved ovphysx package version: {actual}'); print(f'Wheelhouse manifest ovphysx version: {expected}'); import ovphysx; runtime=getattr(ovphysx, '__version__', actual); print(f'Imported ovphysx runtime version: {runtime}'); raise SystemExit(0 if Version(actual) == Version(expected) and Version(runtime) == Version(expected) else f'ovphysx version mismatch: installed {actual}, import {runtime}, manifest {expected}')\"
             ;;
         esac
+        case \" \${TEST_WHEELHOUSE_PACKAGES} \" in
+          *\" ovrtx \"*)
+            ./isaaclab.sh -p -c \"import hashlib,importlib.metadata,json,os,pathlib; from packaging.version import Version; manifest=json.loads(pathlib.Path(os.environ['TEST_WHEELHOUSE_MANIFEST']).read_text(encoding='utf-8')); record=manifest.get('ovrtx') or {}; wheel=pathlib.Path(os.environ['TEST_WHEELHOUSE_PATH']) / record.get('file', ''); expected=manifest.get('ovrtx_version'); actual=importlib.metadata.version('ovrtx'); digest=hashlib.file_digest(wheel.open('rb'), 'sha256').hexdigest(); import ovrtx; from ovrtx import _version; expected_branch=(manifest.get('source') or {}).get('ref'); expected_sha=manifest.get('ovrtx_git_sha'); print(f'Resolved ovrtx package version: {actual}'); print(f'Wheelhouse manifest ovrtx version: {expected}'); print(f'Wheelhouse ovrtx SHA-256: {digest}'); print(f'Imported ovrtx provenance: {_version.gitbranch}@{_version.githash}'); raise SystemExit(0 if Version(actual) == Version(expected) and digest == record.get('sha256') and _version.gitbranch == expected_branch and _version.githash == expected_sha else f'ovrtx wheelhouse mismatch: installed {actual}, manifest {expected}, sha {digest}, provenance {_version.gitbranch}@{_version.githash}')\"
+            ;;
+        esac
       fi
       if [ -n \"\${TEST_EXTRA_PIP_PACKAGES:-}\" ]; then
         echo \"Installing extra pip packages: \${TEST_EXTRA_PIP_PACKAGES}\"

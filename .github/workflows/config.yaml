@@ -9,3 +9,5 @@ isaacsim_image_name: nvcr.io/nvidian/isaac-sim
 isaacsim_image_tag: latest-develop
 isaaclab_image_name: nvcr.io/nvidian/isaac-lab
 ovphysx_wheelhouse_image: ""
+# Temporary fork-only VTC carrier. The build workflow restricts this override to manual dispatches in nvsekkin/IsaacLab.
+ovrtx_wheelhouse_image: "nvcr.io/nvidian/isaaclab-ovrtx-wheel-experimental-ci:ovrtx-wheelhouse-v0.4.1.0-g82e7c45f5d90-w9e5546e42abc@sha256:cb534737bab47b0be6e2a711eeb851eb422b6a200bbf1ebb8491714bb7fd9184"

@@ -119,6 +119,7 @@ jobs:
       isaacsim_image_tag: ${{ steps.load.outputs.isaacsim_image_tag }}
       isaaclab_image_name: ${{ steps.load.outputs.isaaclab_image_name }}
       ovphysx_wheelhouse_image: ${{ steps.load.outputs.ovphysx_wheelhouse_image }}
+      ovrtx_wheelhouse_image: ${{ steps.load.outputs.ovrtx_wheelhouse_image }}
       ci_image_tag: ${{ steps.image_tag.outputs.ci_image_tag }}
     steps:
     - uses: actions/checkout@v6
@@ -134,6 +135,7 @@ jobs:
         echo "isaacsim_image_tag=$(yq -r .isaacsim_image_tag "$f")" >> "$GITHUB_OUTPUT"
         echo "isaaclab_image_name=$(yq -r .isaaclab_image_name "$f")" >> "$GITHUB_OUTPUT"
         echo "ovphysx_wheelhouse_image=$(yq -r '.ovphysx_wheelhouse_image // ""' "$f")" >> "$GITHUB_OUTPUT"
+        echo "ovrtx_wheelhouse_image=$(yq -r '.ovrtx_wheelhouse_image // ""' "$f")" >> "$GITHUB_OUTPUT"
     # NOTE: this ci_image_tag formula is intentionally duplicated in arm-ci.yml's
     # config job — the two images are independent (x86 here vs -arm64 there), so
     # they are not shared. Keep the two formulas in sync if either changes.
@@ -577,6 +579,7 @@ jobs:
       needs.build.result == 'success'
     env:
       USE_OVPHYSX_WHEELHOUSE: ${{ needs.config.outputs.ovphysx_wheelhouse_image != '' && ((github.event_name == 'pull_request' && github.base_ref == 'develop' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name != 'pull_request' && github.ref_name == 'develop')) }}
+      USE_OVRTX_WHEELHOUSE: ${{ github.event_name == 'workflow_dispatch' && github.repository == 'nvsekkin/IsaacLab' && needs.config.outputs.ovrtx_wheelhouse_image != '' }}
     steps:
     - uses: actions/checkout@v6
       with:
@@ -591,9 +594,9 @@ jobs:
         isaacsim-base-image: ${{ needs.config.outputs.isaacsim_image_name }}
         isaacsim-version: ${{ needs.config.outputs.isaacsim_image_tag }}
         filter-pattern: "isaaclab_ov"
-        extra-pip-packages: ${{ env.USE_OVPHYSX_WHEELHOUSE == 'true' && steps.ov_pins.outputs.ovrtx || format('{0} {1}', steps.ov_pins.outputs.ovrtx, steps.ov_pins.outputs.ovphysx) }}
-        wheelhouse-image: ${{ env.USE_OVPHYSX_WHEELHOUSE == 'true' && needs.config.outputs.ovphysx_wheelhouse_image || '' }}
-        wheelhouse-packages: ${{ env.USE_OVPHYSX_WHEELHOUSE == 'true' && 'ovphysx' || '' }}
+        extra-pip-packages: ${{ env.USE_OVRTX_WHEELHOUSE == 'true' && steps.ov_pins.outputs.ovphysx || (env.USE_OVPHYSX_WHEELHOUSE == 'true' && steps.ov_pins.outputs.ovrtx || format('{0} {1}', steps.ov_pins.outputs.ovrtx, steps.ov_pins.outputs.ovphysx)) }}
+        wheelhouse-image: ${{ env.USE_OVRTX_WHEELHOUSE == 'true' && needs.config.outputs.ovrtx_wheelhouse_image || (env.USE_OVPHYSX_WHEELHOUSE == 'true' && needs.config.outputs.ovphysx_wheelhouse_image || '') }}
+        wheelhouse-packages: ${{ env.USE_OVRTX_WHEELHOUSE == 'true' && 'ovrtx' || (env.USE_OVPHYSX_WHEELHOUSE == 'true' && 'ovphysx' || '') }}
         container-name: isaac-lab-ov-test
 
     # Folded from the former standalone verify-base-non-root job: reuses the
@@ -770,6 +773,7 @@ jobs:
           event_name: pull_request
     env:
       USE_OVPHYSX_WHEELHOUSE: ${{ needs.config.outputs.ovphysx_wheelhouse_image != '' && ((github.event_name == 'pull_request' && github.base_ref == 'develop' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name != 'pull_request' && github.ref_name == 'develop')) }}
+      USE_OVRTX_WHEELHOUSE: ${{ github.event_name == 'workflow_dispatch' && github.repository == 'nvsekkin/IsaacLab' && needs.config.outputs.ovrtx_wheelhouse_image != '' }}
     steps:
     - uses: actions/checkout@v6
       with:
@@ -786,9 +790,9 @@ jobs:
         filter-pattern: "isaaclab_tasks"
         extra-pip-packages: >-
           pytetwild[all]>=0.3.0,<0.4
-          ${{ env.USE_OVPHYSX_WHEELHOUSE == 'true' && steps.ov_pins.outputs.ovrtx || format('{0} {1}', steps.ov_pins.outputs.ovrtx, steps.ov_pins.outputs.ovphysx) }}
-        wheelhouse-image: ${{ env.USE_OVPHYSX_WHEELHOUSE == 'true' && needs.config.outputs.ovphysx_wheelhouse_image || '' }}
-        wheelhouse-packages: ${{ env.USE_OVPHYSX_WHEELHOUSE == 'true' && 'ovphysx' || '' }}
+          ${{ env.USE_OVRTX_WHEELHOUSE == 'true' && steps.ov_pins.outputs.ovphysx || (env.USE_OVPHYSX_WHEELHOUSE == 'true' && steps.ov_pins.outputs.ovrtx || format('{0} {1}', steps.ov_pins.outputs.ovrtx, steps.ov_pins.outputs.ovphysx)) }}
+        wheelhouse-image: ${{ env.USE_OVRTX_WHEELHOUSE == 'true' && needs.config.outputs.ovrtx_wheelhouse_image || (env.USE_OVPHYSX_WHEELHOUSE == 'true' && needs.config.outputs.ovphysx_wheelhouse_image || '') }}
+        wheelhouse-packages: ${{ env.USE_OVRTX_WHEELHOUSE == 'true' && 'ovrtx' || (env.USE_OVPHYSX_WHEELHOUSE == 'true' && 'ovphysx' || '') }}
         include-files: >-
           test_rendering_cartpole_kitless.py,
           test_rendering_dexsuite_kuka_hetero_kitless.py,
