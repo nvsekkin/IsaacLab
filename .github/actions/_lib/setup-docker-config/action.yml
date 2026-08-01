@@ -37,7 +37,7 @@ runs:
 
         if [ -n "${NGC_API_KEY:-}" ]; then
           echo "🔵 Logging into nvcr.io..."
-          docker login -u '$oauthtoken' -p "${NGC_API_KEY}" nvcr.io
+          printf '%s' "${NGC_API_KEY}" | docker login -u '$oauthtoken' --password-stdin nvcr.io
         else
           echo "🟠 NGC_API_KEY not set - skipping nvcr.io login (normal for fork PRs)"
         fi
