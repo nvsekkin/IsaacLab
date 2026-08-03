@@ -163,7 +163,7 @@ jobs:
   #region build jobs
   build:
     name: Build Base Docker Image
-    runs-on: [self-hosted, gpu]
+    runs-on: [ovrtx-vtc]
     needs: [changes, config]
     if: needs.changes.outputs.should_run == 'true'
     steps:
@@ -571,7 +571,7 @@ jobs:
 
   test-isaaclab-ov:
     name: isaaclab_ov
-    runs-on: [self-hosted, gpu]
+    runs-on: [ovrtx-vtc]
     timeout-minutes: 180
     needs: [build, config]
     if: >-
@@ -757,7 +757,7 @@ jobs:
 
   test-rendering-correctness-kitless:
     name: "rendering-correctness-kitless (${{ matrix.variant }})"
-    runs-on: [self-hosted, gpu]
+    runs-on: [ovrtx-vtc]
     timeout-minutes: 120
     continue-on-error: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     needs: [build, config]
