@@ -294,12 +294,16 @@ run_tests() {
   # step can still `docker kill` the container reliably.
   # `docker logs -f` is the foreground process and is trivially killable.
   echo "🔵 Starting Docker container for tests..."
+  local memory_limit
+  local cpu_limit
+  memory_limit=$(free -m | awk '/^Mem:/{printf "%dm", $2 * 0.9}')
+  cpu_limit=$(awk -v cpus="$(nproc)" 'BEGIN {printf "%.1f", cpus * 0.9}')
   docker run -d --name $container_name \
     --init --stop-timeout 5 \
     --entrypoint bash --gpus all --network=host \
     --security-opt=no-new-privileges:true \
-    --memory=$(echo "$(free -m | awk '/^Mem:/{print $2}') * 0.9 / 1" | bc)m \
-    --cpus=$(echo "$(nproc) * 0.9" | bc) \
+    --memory="$memory_limit" \
+    --cpus="$cpu_limit" \
     --oom-kill-disable=false \
     --ulimit nofile=65536:65536 \
     --ulimit nproc=4096:4096 \
