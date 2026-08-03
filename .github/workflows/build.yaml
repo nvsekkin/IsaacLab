@@ -190,6 +190,7 @@ jobs:
     needs: [changes, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.changes.outputs.should_run == 'true'
     steps:
     - name: Checkout Code
@@ -218,6 +219,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -245,6 +247,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -272,6 +275,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -298,6 +302,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -322,6 +327,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -346,6 +352,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -370,6 +377,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     strategy:
       fail-fast: false
@@ -412,6 +420,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -434,6 +443,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -455,6 +465,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -477,6 +488,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -498,6 +510,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -519,6 +532,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -540,6 +554,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -562,6 +577,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -601,7 +617,7 @@ jobs:
         image-tag: ${{ needs.config.outputs.ci_image_tag }}
         isaacsim-base-image: ${{ needs.config.outputs.isaacsim_image_name }}
         isaacsim-version: ${{ needs.config.outputs.isaacsim_image_tag }}
-        filter-pattern: "isaaclab_ov"
+        filter-pattern: "isaaclab_ov/"
         # Volume deformable tests tetrahedralize their meshes at startup.
         extra-pip-packages: >-
           pytetwild[all]>=0.3.0,<0.4
@@ -644,6 +660,7 @@ jobs:
     needs: [build-curobo, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build-curobo.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -694,6 +711,7 @@ jobs:
     needs: [build-curobo, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build-curobo.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -718,6 +736,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -742,6 +761,7 @@ jobs:
     needs: [build, config]
     if: >-
       github.event_name != 'push' &&
+      github.event_name != 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -766,7 +786,9 @@ jobs:
     timeout-minutes: 120
     continue-on-error: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     needs: [build, config]
-    if: needs.build.result == 'success'
+    if: >-
+      github.event_name != 'workflow_dispatch' &&
+      needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
       with:
@@ -865,7 +887,7 @@ jobs:
       group: warp-cache-write-${{ github.ref }}
       cancel-in-progress: false
     if: >-
-      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.event_name == 'push' &&
       needs.build.result == 'success'
     env:
       # Caches are branch-scoped: publishing only helps from a PR base branch
