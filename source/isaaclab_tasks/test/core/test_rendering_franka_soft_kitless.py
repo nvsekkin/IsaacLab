@@ -9,17 +9,18 @@ from pathlib import Path
 
 import pytest
 from rendering_test_utils import (
+    KITLESS_PHYSICS_RENDERER_AOV_COMBINATIONS,
     make_attach_comparison_properties_fixture,
     make_determinism_fixture,
     make_generate_html_report_fixture,
-    make_kitless_rendering_params_franka,
+    make_kitless_rendering_params,
     make_require_ovlibs_install_fixture,
     rendering_test_franka_soft,
 )
 
 pytestmark = pytest.mark.isaacsim_ci
 
-_RENDERING_PARAMS = make_kitless_rendering_params_franka()
+_RENDERING_PARAMS = make_kitless_rendering_params(KITLESS_PHYSICS_RENDERER_AOV_COMBINATIONS)
 _COMPARISON_SCORES: list[dict] = []
 
 _determinism_fixture = make_determinism_fixture()
