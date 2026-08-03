@@ -165,7 +165,9 @@ jobs:
     name: Build Base Docker Image
     runs-on: [ovrtx-vtc]
     needs: [changes, config]
-    if: needs.changes.outputs.should_run == 'true'
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      needs.changes.outputs.should_run == 'true'
     steps:
     - name: Checkout Code
       uses: actions/checkout@v6
@@ -575,7 +577,7 @@ jobs:
     timeout-minutes: 180
     needs: [build, config]
     if: >-
-      github.event_name != 'push' &&
+      github.event_name == 'workflow_dispatch' &&
       needs.build.result == 'success'
     env:
       USE_OVPHYSX_WHEELHOUSE: ${{ needs.config.outputs.ovphysx_wheelhouse_image != '' && ((github.event_name == 'pull_request' && github.base_ref == 'develop' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name != 'pull_request' && github.ref_name == 'develop')) }}
@@ -761,7 +763,9 @@ jobs:
     timeout-minutes: 120
     continue-on-error: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     needs: [build, config]
-    if: needs.build.result == 'success'
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      needs.build.result == 'success'
     strategy:
       fail-fast: false
       matrix:
