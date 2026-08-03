@@ -177,6 +177,8 @@ jobs:
 
     - name: Build and push to ECR
       uses: ./.github/actions/ecr-build-push-pull
+      env:
+        NGC_API_KEY: ${{ secrets.ISAACSIM_NGC_API_KEY || secrets.NGC_API_KEY }}
       with:
         image-tag: ${{ needs.config.outputs.ci_image_tag }}
         isaacsim-base-image: ${{ needs.config.outputs.isaacsim_image_name }}
@@ -613,6 +615,8 @@ jobs:
       uses: ./.github/actions/resolve-ov-pins
       id: ov_pins
     - uses: ./.github/actions/run-package-tests
+      env:
+        NGC_API_KEY: ${{ secrets.ISAACSIM_NGC_API_KEY || secrets.NGC_API_KEY }}
       with:
         image-tag: ${{ needs.config.outputs.ci_image_tag }}
         isaacsim-base-image: ${{ needs.config.outputs.isaacsim_image_name }}
@@ -623,6 +627,7 @@ jobs:
           pytetwild[all]>=0.3.0,<0.4
           ${{ env.USE_OVRTX_WHEELHOUSE == 'true' && steps.ov_pins.outputs.ovphysx || (env.USE_OVPHYSX_WHEELHOUSE == 'true' && steps.ov_pins.outputs.ovrtx || format('{0} {1}', steps.ov_pins.outputs.ovrtx, steps.ov_pins.outputs.ovphysx)) }}
         wheelhouse-image: ${{ env.USE_OVRTX_WHEELHOUSE == 'true' && needs.config.outputs.ovrtx_wheelhouse_image || (env.USE_OVPHYSX_WHEELHOUSE == 'true' && needs.config.outputs.ovphysx_wheelhouse_image || '') }}
+        wheelhouse-ngc-api-key: ${{ secrets.NGC_API_KEY }}
         wheelhouse-packages: ${{ env.USE_OVRTX_WHEELHOUSE == 'true' && 'ovrtx' || (env.USE_OVPHYSX_WHEELHOUSE == 'true' && 'ovphysx' || '') }}
         container-name: isaac-lab-ov-test
 
@@ -844,6 +849,8 @@ jobs:
       uses: ./.github/actions/resolve-ov-pins
       id: ov_pins
     - uses: ./.github/actions/run-package-tests
+      env:
+        NGC_API_KEY: ${{ secrets.ISAACSIM_NGC_API_KEY || secrets.NGC_API_KEY }}
       with:
         image-tag: ${{ needs.config.outputs.ci_image_tag }}
         isaacsim-base-image: ${{ needs.config.outputs.isaacsim_image_name }}
@@ -853,6 +860,7 @@ jobs:
           pytetwild[all]>=0.3.0,<0.4
           ${{ env.USE_OVRTX_WHEELHOUSE == 'true' && steps.ov_pins.outputs.ovphysx || (env.USE_OVPHYSX_WHEELHOUSE == 'true' && steps.ov_pins.outputs.ovrtx || format('{0} {1}', steps.ov_pins.outputs.ovrtx, steps.ov_pins.outputs.ovphysx)) }}
         wheelhouse-image: ${{ env.USE_OVRTX_WHEELHOUSE == 'true' && needs.config.outputs.ovrtx_wheelhouse_image || (env.USE_OVPHYSX_WHEELHOUSE == 'true' && needs.config.outputs.ovphysx_wheelhouse_image || '') }}
+        wheelhouse-ngc-api-key: ${{ secrets.NGC_API_KEY }}
         wheelhouse-packages: ${{ env.USE_OVRTX_WHEELHOUSE == 'true' && 'ovrtx' || (env.USE_OVPHYSX_WHEELHOUSE == 'true' && 'ovphysx' || '') }}
         include-files: >-
           test_rendering_cartpole_kitless.py,
