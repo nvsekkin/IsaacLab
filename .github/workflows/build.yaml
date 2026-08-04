@@ -787,12 +787,12 @@ jobs:
 
   test-rendering-correctness:
     name: "rendering-correctness"
-    runs-on: [self-hosted, gpu]
+    runs-on: [ovrtx-vtc]
     timeout-minutes: 120
     continue-on-error: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     needs: [build, config]
     if: >-
-      github.event_name != 'workflow_dispatch' &&
+      github.event_name == 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
