@@ -507,12 +507,11 @@ jobs:
 
   test-isaaclab-visualizers:
     name: isaaclab_visualizers
-    runs-on: [self-hosted, gpu]
+    runs-on: [ovrtx-vtc]
     timeout-minutes: 180
     needs: [build, config]
     if: >-
-      github.event_name != 'push' &&
-      github.event_name != 'workflow_dispatch' &&
+      github.event_name == 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
@@ -574,12 +573,11 @@ jobs:
 
   test-isaaclab-physx:
     name: isaaclab_physx
-    runs-on: [self-hosted, gpu]
+    runs-on: [ovrtx-vtc]
     timeout-minutes: 180
     needs: [build, config]
     if: >-
-      github.event_name != 'push' &&
-      github.event_name != 'workflow_dispatch' &&
+      github.event_name == 'workflow_dispatch' &&
       needs.build.result == 'success'
     steps:
     - uses: actions/checkout@v6
