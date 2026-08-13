@@ -91,6 +91,10 @@ inputs:
     description: 'Optional digest-pinned Docker image containing /wheelhouse and /manifest.json'
     default: ''
     required: false
+  wheelhouse-ngc-api-key:
+    description: 'Optional NGC API key used only to pull the wheelhouse image'
+    default: ''
+    required: false
   wheelhouse-packages:
     description: 'Space-separated packages to install from the wheelhouse with pip --no-index'
     default: ''
@@ -235,6 +239,8 @@ runs:
     - name: Setup wheelhouse registry authentication
       if: inputs.wheelhouse-image != ''
       uses: ./.github/actions/_lib/setup-docker-config
+      env:
+        NGC_API_KEY: ${{ inputs.wheelhouse-ngc-api-key != '' && inputs.wheelhouse-ngc-api-key || env.NGC_API_KEY }}
 
     - name: Extract ovphysx wheelhouse
       id: extract-wheelhouse

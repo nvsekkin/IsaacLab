@@ -302,12 +302,16 @@ run_tests() {
   # step can still `docker kill` the container reliably.
   # `docker logs -f` is the foreground process and is trivially killable.
   echo "🔵 Starting Docker container for tests..."
+  local memory_limit
+  local cpu_limit
+  memory_limit=$(free -m | awk '/^Mem:/{printf "%dm", $2 * 0.9}')
+  cpu_limit=$(awk -v cpus="$(nproc)" 'BEGIN {printf "%.1f", cpus * 0.9}')
   docker run -d --name $container_name \
     --init --stop-timeout 5 \
     --entrypoint bash --gpus all --network=host \
     --security-opt=no-new-privileges:true \
-    --memory=$(echo "$(free -m | awk '/^Mem:/{print $2}') * 0.9 / 1" | bc)m \
-    --cpus=$(echo "$(nproc) * 0.9" | bc) \
+    --memory="$memory_limit" \
+    --cpus="$cpu_limit" \
     --oom-kill-disable=false \
     --ulimit nofile=65536:65536 \
     --ulimit nproc=4096:4096 \
@@ -342,6 +346,9 @@ run_tests() {
         case \" \${TEST_WHEELHOUSE_PACKAGES} \" in
           *\" ovphysx \"*)
             ./isaaclab.sh -p -c \"import importlib.metadata,json,os,pathlib; from packaging.version import Version; manifest=json.loads(pathlib.Path(os.environ['TEST_WHEELHOUSE_MANIFEST']).read_text(encoding='utf-8')); expected=manifest.get('ovphysx_version'); actual=importlib.metadata.version('ovphysx'); print(f'Resolved ovphysx package version: {actual}'); print(f'Wheelhouse manifest ovphysx version: {expected}'); import ovphysx; runtime=getattr(ovphysx, '__version__', actual); print(f'Imported ovphysx runtime version: {runtime}'); raise SystemExit(0 if Version(actual) == Version(expected) and Version(runtime) == Version(expected) else f'ovphysx version mismatch: installed {actual}, import {runtime}, manifest {expected}')\"
+            ;;
+          *\" ovrtx \"*)
+            ./isaaclab.sh -p -c \"import hashlib,importlib.metadata,json,os,pathlib; from packaging.version import Version; manifest=json.loads(pathlib.Path(os.environ['TEST_WHEELHOUSE_MANIFEST']).read_text(encoding='utf-8')); record=manifest.get('ovrtx') or {}; wheel=pathlib.Path(os.environ['TEST_WHEELHOUSE_PATH']) / record.get('file', ''); expected=manifest.get('ovrtx_version'); actual=importlib.metadata.version('ovrtx'); digest=hashlib.file_digest(wheel.open('rb'), 'sha256').hexdigest(); import ovrtx; from ovrtx import _version; expected_branch=(manifest.get('source') or {}).get('ref'); expected_sha=manifest.get('ovrtx_git_sha'); print(f'Resolved ovrtx package version: {actual}'); print(f'Wheelhouse manifest ovrtx version: {expected}'); print(f'Wheelhouse ovrtx SHA-256: {digest}'); print(f'Imported ovrtx provenance: {_version.gitbranch}@{_version.githash}'); raise SystemExit(0 if Version(actual) == Version(expected) and digest == record.get('sha256') and _version.gitbranch == expected_branch and _version.githash == expected_sha else f'ovrtx wheelhouse mismatch: installed {actual}, manifest {expected}, sha {digest}, provenance {_version.gitbranch}@{_version.githash}')\"
             ;;
         esac
       fi
