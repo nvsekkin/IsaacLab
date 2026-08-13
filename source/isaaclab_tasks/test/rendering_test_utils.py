@@ -153,15 +153,8 @@ _NEWTON_WARP_DATA_TYPES = (
 # Users should use ``instance_segmentation`` or ``semantic_segmentation`` instead.
 _OVRTX_DATA_TYPES = tuple(dt for dt in _DEFAULT_SENSOR_DATA_TYPES if dt != "instance_id_segmentation_fast")
 
-_OVRTX_TEXTURE_READINESS_DATA_TYPES = (
-    "albedo",
-    "simple_shading_diffuse_mdl",
-    "simple_shading_full_mdl",
-)
-_OVRTX_TEXTURE_READINESS_XFAIL_REASON = "OVRTX 0.4 may return before textured materials are ready (NVBUG#6505191)."
 _KITLESS_STAGE_VARIANTS = ("legacy", "ovstage")
 _LIFT_RENDERER_CRASH_SKIP_REASON = "Lift kitless OVRTX MDL rendering can kill the test process (NVBUG#6524987)."
-_OVRTX_CLOTH_MOTION_XFAIL_REASON = "Missing cloth in OVRTX 0.4 motion vectors (NVBUG#6489754)."
 
 
 def make_xfail_rendering_params(
@@ -298,40 +291,21 @@ PHYSICS_RENDERER_AOV_COMBINATIONS = [
     ),
 ]
 
-KITLESS_PHYSICS_RENDERER_AOV_COMBINATIONS = make_xfail_rendering_params(
-    [
-        *_make_sensor_data_type_params("ovphysx", "ovrtx", _OVRTX_DATA_TYPES),
-        *_make_sensor_data_type_params("newton", "ovrtx", _OVRTX_DATA_TYPES),
-        *_make_sensor_data_type_params(
-            "ovphysx", "newton", _NEWTON_WARP_DATA_TYPES, flaky=False, renderer_label="newton_warp"
-        ),
-        *_make_sensor_data_type_params(
-            "newton", "newton", _NEWTON_WARP_DATA_TYPES, flaky=False, renderer_label="newton_warp"
-        ),
-    ],
-    {
-        ("newton", "ovrtx_renderer", data_type): _OVRTX_TEXTURE_READINESS_XFAIL_REASON
-        for data_type in _OVRTX_TEXTURE_READINESS_DATA_TYPES
-    },
-)
+KITLESS_PHYSICS_RENDERER_AOV_COMBINATIONS = [
+    *_make_sensor_data_type_params("ovphysx", "ovrtx", _OVRTX_DATA_TYPES),
+    *_make_sensor_data_type_params("newton", "ovrtx", _OVRTX_DATA_TYPES),
+    *_make_sensor_data_type_params(
+        "ovphysx", "newton", _NEWTON_WARP_DATA_TYPES, flaky=False, renderer_label="newton_warp"
+    ),
+    *_make_sensor_data_type_params(
+        "newton", "newton", _NEWTON_WARP_DATA_TYPES, flaky=False, renderer_label="newton_warp"
+    ),
+]
 
 
-def make_kitless_rendering_params_lift(*, include_texture_readiness_xfail: bool = False) -> list[pytest.param]:
-    """Create kitless Lift parameters with known failures isolated.
-
-    Args:
-        include_texture_readiness_xfail: Whether to mark the OVPhysX OVRTX albedo cases as expected failures.
-    """
+def make_kitless_rendering_params_lift() -> list[pytest.param]:
+    """Create kitless Lift parameters with native-crash cases isolated."""
     params = make_kitless_rendering_params(KITLESS_PHYSICS_RENDERER_AOV_COMBINATIONS)
-    if include_texture_readiness_xfail:
-        params = make_xfail_rendering_params(
-            params,
-            {
-                (variant, "ovphysx", "ovrtx_renderer", "albedo"): _OVRTX_TEXTURE_READINESS_XFAIL_REASON
-                for variant in _KITLESS_STAGE_VARIANTS
-            },
-        )
-
     # Both backends can SIGSEGV on the MDL AOVs, which loses the JUnit report for the whole file,
     # so xfail cannot express these.
     return make_skip_rendering_params(
@@ -345,18 +319,9 @@ def make_kitless_rendering_params_lift(*, include_texture_readiness_xfail: bool 
     )
 
 
-def make_kitless_rendering_params_franka(*, include_cloth_motion_vectors: bool = False) -> list[pytest.param]:
-    """Create kitless Franka parameters with the cloth-only motion-vector regression optionally marked."""
-    params = make_kitless_rendering_params(KITLESS_PHYSICS_RENDERER_AOV_COMBINATIONS)
-    if not include_cloth_motion_vectors:
-        return params
-    return make_xfail_rendering_params(
-        params,
-        {
-            (variant, "newton", "ovrtx_renderer", "motion_vectors"): _OVRTX_CLOTH_MOTION_XFAIL_REASON
-            for variant in _KITLESS_STAGE_VARIANTS
-        },
-    )
+def make_kitless_rendering_params_franka() -> list[pytest.param]:
+    """Create kitless Franka rendering parameters."""
+    return make_kitless_rendering_params(KITLESS_PHYSICS_RENDERER_AOV_COMBINATIONS)
 
 
 # Tolerances for the numeric transform comparison. Transform entries mix unit-scale rotation
@@ -941,7 +906,6 @@ def make_require_ovlibs_install_fixture():
             return
 
         if callspec.params.get("renderer") == "ovrtx_renderer":
-            monkeypatch.setenv("ISAAC_LAB_OVRTX_READ_GPU_TRANSFORMS", "0")
             try:
                 import ovrtx
 

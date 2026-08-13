@@ -95,17 +95,14 @@ def test_make_skip_rendering_params_overrides_xfail_and_flaky_marks() -> None:
     assert marked[0].marks[0].kwargs["reason"] == "Native renderer crash."
 
 
-def test_kitless_matrix_scopes_texture_readiness_xfail_to_newton() -> None:
-    """OVPhysX textured AOVs pass outside Lift, so the shared readiness xfail stays Newton-only."""
+def test_kitless_matrix_has_no_texture_readiness_xfails() -> None:
+    """OVRTX 0.4.1 textured AOVs should run without readiness xfails."""
     params = {param.id: param for param in KITLESS_PHYSICS_RENDERER_AOV_COMBINATIONS}
 
     for data_type in ("albedo", "simple_shading_diffuse_mdl", "simple_shading_full_mdl"):
-        newton_param = params[f"newton-ovrtx-{data_type}"]
-        assert [mark.name for mark in newton_param.marks] == ["xfail"]
-        assert "NVBUG#6505191" in newton_param.marks[0].kwargs["reason"]
-
-        ovphysx_param = params[f"ovphysx-ovrtx-{data_type}"]
-        assert "xfail" not in [mark.name for mark in ovphysx_param.marks]
+        for physics_backend in ("newton", "ovphysx"):
+            param = params[f"{physics_backend}-ovrtx-{data_type}"]
+            assert "xfail" not in [mark.name for mark in param.marks]
 
 
 def test_lift_factory_applies_shared_native_crash_policy() -> None:
@@ -123,18 +120,13 @@ def test_lift_factory_applies_shared_native_crash_policy() -> None:
     assert "xfail" not in [mark.name for mark in params["legacy-ovphysx-ovrtx-albedo"].marks]
 
 
-def test_franka_factory_adds_cloth_only_motion_policy() -> None:
-    """Only the cloth suite should carry the motion-vector xfail."""
-    soft_params = {param.id: param for param in make_kitless_rendering_params_franka()}
-    cloth_params = {
-        param.id: param for param in make_kitless_rendering_params_franka(include_cloth_motion_vectors=True)
-    }
+def test_franka_factory_has_no_cloth_motion_xfail() -> None:
+    """OVRTX 0.4.1 cloth motion vectors should run without an xfail."""
+    params = {param.id: param for param in make_kitless_rendering_params_franka()}
 
     for variant in ("legacy", "ovstage"):
         motion_id = f"{variant}-newton-ovrtx-motion_vectors"
-        assert "xfail" not in [mark.name for mark in soft_params[motion_id].marks]
-        assert [mark.name for mark in cloth_params[motion_id].marks] == ["xfail"]
-        assert "NVBUG#6489754" in cloth_params[motion_id].marks[0].kwargs["reason"]
+        assert "xfail" not in [mark.name for mark in params[motion_id].marks]
 
 
 def test_html_report_labels_xfail_and_xpass_outcomes(monkeypatch, tmp_path: Path) -> None:
