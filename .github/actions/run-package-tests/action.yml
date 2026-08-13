@@ -275,7 +275,9 @@ runs:
 
         docker pull "$WHEELHOUSE_IMAGE"
         image_pulled=true
-        container_id="$(docker create "$WHEELHOUSE_IMAGE")"
+        # Wheelhouse carriers are data-only images and may be built FROM scratch
+        # without a default command. Supply one because the container is never run.
+        container_id="$(docker create "$WHEELHOUSE_IMAGE" true)"
         docker cp "${container_id}:/wheelhouse" "$wheelhouse_root/wheelhouse"
         docker cp "${container_id}:/manifest.json" "$wheelhouse_root/manifest.json"
         docker rm "$container_id"
