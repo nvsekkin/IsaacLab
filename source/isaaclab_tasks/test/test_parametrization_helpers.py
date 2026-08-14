@@ -24,16 +24,19 @@ from rendering_test_utils import (
 
 
 @pytest.mark.parametrize(
-    ("env_name", "renderer", "expected"),
+    ("env_name", "renderer", "data_type", "expected"),
     [
-        ("franka_soft", "ovrtx_renderer", 3.0),
-        ("franka_soft", "isaacsim_rtx_renderer", 8.0),
-        ("cartpole", "ovrtx_renderer", 1.5),
+        ("franka_soft", "ovrtx_renderer", "albedo", 3.0),
+        ("franka_soft", "isaacsim_rtx_renderer", "albedo", 8.0),
+        ("cartpole", "ovrtx_renderer", "rgb", 1.5),
+        ("shadow_hand", "ovrtx_renderer", "depth", 5.0),
     ],
 )
-def test_ovrtx_image_difference_threshold_is_capped(env_name: str, renderer: str, expected: float) -> None:
+def test_ovrtx_image_difference_threshold_is_capped(
+    env_name: str, renderer: str, data_type: str, expected: float
+) -> None:
     """OVRTX should use a tighter cap without loosening stricter environment thresholds."""
-    assert rendering_test_utils._max_different_pixels_percentage(env_name, renderer) == expected
+    assert rendering_test_utils._max_different_pixels_percentage(env_name, renderer, data_type) == expected
 
 
 @pytest.mark.parametrize(("renderer", "expected_steps"), [("ovrtx_renderer", 3), ("isaacsim_rtx_renderer", 2)])

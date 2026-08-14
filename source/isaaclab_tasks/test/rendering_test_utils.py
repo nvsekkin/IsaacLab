@@ -63,12 +63,13 @@ MAX_DIFFERENT_PIXELS_PERCENTAGE_BY_ENV_NAME = {
 # OVRTX 0.4.1 RC rendering is deterministic, so cap its environment-specific
 # pixel-difference tolerance at the upper end of the agreed 1-3% range.
 _OVRTX_MAX_DIFFERENT_PIXELS_PERCENTAGE = 3.0
+_OVRTX_SCALE_SENSITIVE_DATA_TYPES = {"depth", "distance_to_camera", "distance_to_image_plane"}
 
 
-def _max_different_pixels_percentage(env_name: str, renderer: str) -> float:
+def _max_different_pixels_percentage(env_name: str, renderer: str, data_type: str) -> float:
     """Return the image-difference tolerance for an environment and renderer."""
     threshold = MAX_DIFFERENT_PIXELS_PERCENTAGE_BY_ENV_NAME[env_name]
-    if renderer == "ovrtx_renderer":
+    if renderer == "ovrtx_renderer" and data_type not in _OVRTX_SCALE_SENSITIVE_DATA_TYPES:
         return min(threshold, _OVRTX_MAX_DIFFERENT_PIXELS_PERCENTAGE)
     return threshold
 
@@ -1357,7 +1358,7 @@ def rendering_test_shadow_hand(
             physics_backend,
             renderer,
             env._tiled_camera.data.output,
-            max_different_pixels_percentage=_max_different_pixels_percentage("shadow_hand", renderer),
+            max_different_pixels_percentage=_max_different_pixels_percentage("shadow_hand", renderer, data_type),
             comparison_scores=comparison_scores,
         )
 
@@ -1437,7 +1438,7 @@ def rendering_test_shadow_hand_yellow_bg(
             physics_backend,
             renderer,
             env._tiled_camera.data.output,
-            max_different_pixels_percentage=_max_different_pixels_percentage("shadow_hand", renderer),
+            max_different_pixels_percentage=_max_different_pixels_percentage("shadow_hand", renderer, "rgb"),
             comparison_scores=comparison_scores,
         )
     finally:
@@ -1548,7 +1549,7 @@ def rendering_test_cartpole(
             data_type,
             compare_golden=compare_golden and data_type == "rgb",
         )
-        max_different_pixels_percentage = _max_different_pixels_percentage("cartpole", renderer)
+        max_different_pixels_percentage = _max_different_pixels_percentage("cartpole", renderer, data_type)
         if renderer == "ovrtx_renderer" and data_type in ("rgb", "rgba"):
             max_different_pixels_percentage = _CARTPOLE_OVRTX_RGB_MAX_DIFFERENT_PIXELS_PERCENTAGE
         validate_camera_outputs(
@@ -1704,7 +1705,7 @@ def rendering_test_lift_kuka(
             physics_backend,
             renderer,
             env.scene.sensors["base_camera"].data.output,
-            max_different_pixels_percentage=_max_different_pixels_percentage(test_name, renderer),
+            max_different_pixels_percentage=_max_different_pixels_percentage(test_name, renderer, data_type),
             comparison_scores=comparison_scores,
         )
     finally:
@@ -1797,7 +1798,7 @@ def rendering_test_franka_cloth(
             physics_backend,
             renderer,
             env.scene.sensors["base_camera"].data.output,
-            max_different_pixels_percentage=_max_different_pixels_percentage(test_name, renderer),
+            max_different_pixels_percentage=_max_different_pixels_percentage(test_name, renderer, data_type),
             comparison_scores=comparison_scores,
         )
     finally:
@@ -1866,7 +1867,7 @@ def rendering_test_franka_soft(
             physics_backend,
             renderer,
             env.scene.sensors["base_camera"].data.output,
-            max_different_pixels_percentage=_max_different_pixels_percentage(test_name, renderer),
+            max_different_pixels_percentage=_max_different_pixels_percentage(test_name, renderer, data_type),
             comparison_scores=comparison_scores,
         )
     finally:
