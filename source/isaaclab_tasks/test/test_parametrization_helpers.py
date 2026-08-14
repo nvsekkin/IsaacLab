@@ -23,6 +23,19 @@ from rendering_test_utils import (
 )
 
 
+@pytest.mark.parametrize(
+    ("env_name", "renderer", "expected"),
+    [
+        ("franka_soft", "ovrtx_renderer", 3.0),
+        ("franka_soft", "isaacsim_rtx_renderer", 8.0),
+        ("cartpole", "ovrtx_renderer", 1.5),
+    ],
+)
+def test_ovrtx_image_difference_threshold_is_capped(env_name: str, renderer: str, expected: float) -> None:
+    """OVRTX should use a tighter cap without loosening stricter environment thresholds."""
+    assert rendering_test_utils._max_different_pixels_percentage(env_name, renderer) == expected
+
+
 @pytest.mark.parametrize(("renderer", "expected_steps"), [("ovrtx_renderer", 3), ("isaacsim_rtx_renderer", 2)])
 def test_motion_warmup_adds_one_ovrtx_history_step(renderer: str, expected_steps: int) -> None:
     """OVRTX 0.4.1 should receive one additional motion-history step."""

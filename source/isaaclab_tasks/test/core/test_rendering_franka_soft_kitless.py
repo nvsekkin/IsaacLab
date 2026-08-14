@@ -14,17 +14,12 @@ from rendering_test_utils import (
     make_generate_html_report_fixture,
     make_kitless_rendering_params_franka,
     make_require_ovlibs_install_fixture,
-    make_xfail_rendering_params,
     rendering_test_franka_soft,
 )
 
 pytestmark = pytest.mark.isaacsim_ci
 
-_OVRTX_FULL_MDL_XFAIL_REASON = "OVRTX 0.4.1 full-MDL output remains nondeterministic in the Franka soft setup."
-_RENDERING_PARAMS = make_xfail_rendering_params(
-    make_kitless_rendering_params_franka(),
-    {("legacy", "newton", "ovrtx_renderer", "simple_shading_full_mdl"): _OVRTX_FULL_MDL_XFAIL_REASON},
-)
+_RENDERING_PARAMS = make_kitless_rendering_params_franka()
 _COMPARISON_SCORES: list[dict] = []
 
 _determinism_fixture = make_determinism_fixture()
