@@ -19,7 +19,20 @@ from rendering_test_utils import (
     make_kitless_rendering_params_lift,
     make_skip_rendering_params,
     make_xfail_rendering_params,
+    maybe_step_env_for_motion,
 )
+
+
+@pytest.mark.parametrize(("renderer", "expected_steps"), [("ovrtx_renderer", 3), ("isaacsim_rtx_renderer", 2)])
+def test_motion_warmup_adds_one_ovrtx_history_step(renderer: str, expected_steps: int) -> None:
+    """OVRTX 0.4.1 should receive one additional motion-history step."""
+    env = Mock()
+    env.action_space.shape = (2, 3)
+    env.device = "cpu"
+
+    maybe_step_env_for_motion(env, "motion_vectors", renderer=renderer)
+
+    assert env.step.call_count == expected_steps
 
 
 def test_make_kitless_rendering_params_expands_only_ovrtx() -> None:

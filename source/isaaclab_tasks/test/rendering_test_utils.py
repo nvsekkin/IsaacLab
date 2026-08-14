@@ -1239,7 +1239,9 @@ def maybe_validate_instance_segmentation(
     )
 
 
-def maybe_step_env_for_motion(env: Any, data_type: str, num_steps: int = 2, action_value: float = 0.0) -> None:
+def maybe_step_env_for_motion(
+    env: Any, data_type: str, num_steps: int = 2, action_value: float = 0.0, renderer: str | None = None
+) -> None:
     """Step ``env`` so motion-vector AOVs have real inter-frame motion to encode.
 
     Motion vectors compare the current frame's transforms against the previous frame's; the first frame
@@ -1254,9 +1256,15 @@ def maybe_step_env_for_motion(env: Any, data_type: str, num_steps: int = 2, acti
         action_value: Constant value applied to every action component on every step. Defaults to
             ``0.0`` (motion then comes only from physics already in flight, e.g. gravity/initial velocity).
             Pass a non-zero value to additionally induce actuated motion (e.g. cartpole cart translation).
+        renderer: Renderer under test. OVRTX 0.4.1 requires one additional history step.
     """
     if data_type != "motion_vectors":
         return
+
+    # OVRTX 0.4.1 populates its previous-position history one frame later than the other
+    # renderers. Remove the extra step when OVRTX 0.5 resolves NVBUG#6565960.
+    if renderer == "ovrtx_renderer":
+        num_steps += 1
 
     action = torch.full(env.action_space.shape, action_value, device=env.device)
     for _ in range(num_steps):
@@ -1311,7 +1319,7 @@ def rendering_test_shadow_hand(
 
     try:
         env = ShadowHandCameraEnv(env_cfg)
-        maybe_step_env_for_motion(env, data_type)
+        maybe_step_env_for_motion(env, data_type, renderer=renderer)
         maybe_save_stage("shadow_hand", physics_backend, renderer, data_type)
 
         validate_camera_outputs(
@@ -1488,7 +1496,7 @@ def rendering_test_cartpole(
         env = CartpoleCameraEnv(env_cfg)
         # Nudge the cart with a small constant force so motion vectors also capture cart translation,
         # not just pole dynamics already in flight from the randomized reset.
-        maybe_step_env_for_motion(env, data_type, action_value=0.5)
+        maybe_step_env_for_motion(env, data_type, action_value=0.5, renderer=renderer)
         camera_outputs = env._tiled_camera.data.output
         if renderer == "ovrtx_renderer":
             # The first output access creates the selected OVRTX render-variable mapping. Give
@@ -1659,7 +1667,7 @@ def rendering_test_lift_kuka(
 
     try:
         env = ManagerBasedRLEnv(env_cfg)
-        maybe_step_env_for_motion(env, data_type)
+        maybe_step_env_for_motion(env, data_type, renderer=renderer)
         maybe_save_stage(test_name, physics_backend, renderer, data_type)
         validate_camera_outputs(
             test_name,
