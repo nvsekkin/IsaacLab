@@ -305,12 +305,21 @@ run_tests() {
   local memory_limit
   local cpu_limit
   local gpu_devices
+  local cdi_device
   local -a gpu_args
   memory_limit=$(free -m | awk '/^Mem:/{printf "%dm", $2 * 0.9}')
   cpu_limit=$(awk -v cpus="$(nproc)" 'BEGIN {printf "%.1f", cpus * 0.9}')
   gpu_devices="${ISAACLAB_CI_GPU_DEVICES:-all}"
   if [ "$gpu_devices" = "all" ]; then
     gpu_args=(--gpus all)
+  elif command -v nvidia-ctk >/dev/null 2>&1; then
+    cdi_device=$(nvidia-ctk cdi list | awk '/^nvidia\\.com\\/gpu=/ && !/=all$/ {print; exit}')
+    if [ -z "$cdi_device" ]; then
+      echo "::error::No concrete NVIDIA CDI GPU device is available"
+      return 1
+    fi
+    gpu_args=(--device "$cdi_device")
+    gpu_devices="$cdi_device"
   else
     gpu_args=(--runtime=nvidia -e "NVIDIA_VISIBLE_DEVICES=${gpu_devices#device=}")
   fi
