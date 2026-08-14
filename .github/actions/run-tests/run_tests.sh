@@ -313,7 +313,7 @@ run_tests() {
   if [ "$gpu_devices" = "all" ]; then
     gpu_args=(--gpus all)
   elif command -v nvidia-ctk >/dev/null 2>&1; then
-    cdi_device=$(nvidia-ctk cdi list | awk '/^nvidia\\.com\\/gpu=/ && !/=all$/ {print; exit}')
+    cdi_device=$(nvidia-ctk cdi list | awk '/^nvidia\.com\/gpu=/ && !/=all$/ {print; exit}')
     if [ -z "$cdi_device" ]; then
       echo "::error::No concrete NVIDIA CDI GPU device is available"
       return 1
