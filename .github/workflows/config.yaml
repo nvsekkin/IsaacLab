@@ -14,4 +14,4 @@ isaacsim_image_tag: latest-develop@sha256:a0fe646aa0d2c717a51231589eb210a8f59db7
 isaaclab_image_name: nvcr.io/0947644777160149/internal/isaac-lab
 ovphysx_wheelhouse_image: ""
 # Temporary fork-only VTC carrier. Set to the digest-pinned OVRTX 0.4.1 RC image after publication.
-ovrtx_wheelhouse_image: "nvcr.io/nvidian/isaaclab-ovrtx-wheel-experimental-ci:ovrtx-wheelhouse-v0.4.1.363792-ge4bf68a2-w4c4a0ebab53d@sha256:d5702c2f548984af27e63b99af6c9c3eacf5712351faa2aebdfe4c309172da82"
+ovrtx_wheelhouse_image: "nvcr.io/nvidian/isaaclab-ovrtx-wheel-experimental-ci:ovrtx-wheelhouse-v0.4.1.364340-g7f330117-w597e09f34819@sha256:9bae67cca7b01ff7c01e80a30734537012eabb1821b07e987c0ff845cb6d92bc"
