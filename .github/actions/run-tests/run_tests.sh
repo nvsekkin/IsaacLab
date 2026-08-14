@@ -304,11 +304,14 @@ run_tests() {
   echo "🔵 Starting Docker container for tests..."
   local memory_limit
   local cpu_limit
+  local gpu_devices
   memory_limit=$(free -m | awk '/^Mem:/{printf "%dm", $2 * 0.9}')
   cpu_limit=$(awk -v cpus="$(nproc)" 'BEGIN {printf "%.1f", cpus * 0.9}')
+  gpu_devices="${ISAACLAB_CI_GPU_DEVICES:-all}"
+  echo "Docker GPU selection: ${gpu_devices}"
   docker run -d --name $container_name \
     --init --stop-timeout 5 \
-    --entrypoint bash --gpus all --network=host \
+    --entrypoint bash --gpus "$gpu_devices" --network=host \
     --security-opt=no-new-privileges:true \
     --memory="$memory_limit" \
     --cpus="$cpu_limit" \
