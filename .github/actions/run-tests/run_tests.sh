@@ -305,13 +305,19 @@ run_tests() {
   local memory_limit
   local cpu_limit
   local gpu_devices
+  local -a gpu_args
   memory_limit=$(free -m | awk '/^Mem:/{printf "%dm", $2 * 0.9}')
   cpu_limit=$(awk -v cpus="$(nproc)" 'BEGIN {printf "%.1f", cpus * 0.9}')
   gpu_devices="${ISAACLAB_CI_GPU_DEVICES:-all}"
+  if [ "$gpu_devices" = "all" ]; then
+    gpu_args=(--gpus all)
+  else
+    gpu_args=(--runtime=nvidia -e "NVIDIA_VISIBLE_DEVICES=${gpu_devices#device=}")
+  fi
   echo "Docker GPU selection: ${gpu_devices}"
   docker run -d --name $container_name \
     --init --stop-timeout 5 \
-    --entrypoint bash --gpus "$gpu_devices" --network=host \
+    --entrypoint bash "${gpu_args[@]}" --network=host \
     --security-opt=no-new-privileges:true \
     --memory="$memory_limit" \
     --cpus="$cpu_limit" \
