@@ -29,15 +29,19 @@ if not _MISSING_MODULES:
         RENDER_VAR_FRAME_KEYS,
         build_render_var_frame_keys,
         detect_ovrtx_version,
+        detect_ovstage_version,
         uses_prim_path_render_vars,
+        validate_ovrtx_ovstage_compatibility,
     )
     from isaaclab_ov.renderers.ovrtx_usd import render_var_prim_paths_by_source  # noqa: E402
 else:
     RENDER_VAR_FRAME_KEYS = None
     build_render_var_frame_keys = None
+    detect_ovstage_version = None
     detect_ovrtx_version = None
     render_var_prim_paths_by_source = None
     uses_prim_path_render_vars = None
+    validate_ovrtx_ovstage_compatibility = None
 
 
 def test_detect_ovrtx_version_reads_distribution_metadata(monkeypatch: pytest.MonkeyPatch):
@@ -56,6 +60,61 @@ def test_detect_ovrtx_version_returns_none_when_uninstalled(monkeypatch: pytest.
 def test_detect_ovrtx_version_returns_none_for_unparseable_version(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(importlib.metadata, "version", lambda name: "internal-build")
     assert detect_ovrtx_version() is None
+
+
+def test_detect_ovstage_version_reads_distribution_metadata(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr(importlib.metadata, "version", lambda name: "0.2.0.370625")
+    assert detect_ovstage_version() == Version("0.2.0.370625")
+
+
+def test_detect_ovstage_version_returns_none_when_uninstalled(monkeypatch: pytest.MonkeyPatch):
+    def _missing(name: str) -> str:
+        raise importlib.metadata.PackageNotFoundError(name)
+
+    monkeypatch.setattr(importlib.metadata, "version", _missing)
+    assert detect_ovstage_version() is None
+
+
+def test_detect_ovstage_version_returns_none_for_unparseable_version(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr(importlib.metadata, "version", lambda name: "internal-build")
+    assert detect_ovstage_version() is None
+
+
+@pytest.mark.parametrize(
+    ("ovrtx_version", "ovstage_version"),
+    [
+        (None, None),
+        (Version("0.4.1.364340"), Version("0.1.1.355824")),
+        (Version("0.4.9"), Version("0.1.9")),
+        (Version("0.5.0.0"), Version("0.2.0.370625")),
+        (Version("0.5.9"), Version("0.2.9")),
+        (Version("0.6"), None),
+    ],
+)
+def test_validate_ovrtx_ovstage_compatibility_accepts_supported_pairs(
+    ovrtx_version: Version | None,
+    ovstage_version: Version | None,
+):
+    validate_ovrtx_ovstage_compatibility(ovrtx_version, ovstage_version)
+
+
+@pytest.mark.parametrize(
+    ("ovrtx_version", "ovstage_version", "required"),
+    [
+        (Version("0.4.1.364340"), None, "ovstage>=0.1.1.355824,<0.2"),
+        (Version("0.4.1.364340"), Version("0.2.0.370625"), "ovstage>=0.1.1.355824,<0.2"),
+        (Version("0.5.0.0"), None, "ovstage>=0.2.0.370625,<0.3"),
+        (Version("0.5.0.0"), Version("0.1.1.355824"), "ovstage>=0.2.0.370625,<0.3"),
+        (Version("0.5.0.0"), Version("0.3"), "ovstage>=0.2.0.370625,<0.3"),
+    ],
+)
+def test_validate_ovrtx_ovstage_compatibility_rejects_unsupported_pairs(
+    ovrtx_version: Version,
+    ovstage_version: Version | None,
+    required: str,
+):
+    with pytest.raises(RuntimeError, match=required):
+        validate_ovrtx_ovstage_compatibility(ovrtx_version, ovstage_version)
 
 
 @pytest.mark.parametrize(

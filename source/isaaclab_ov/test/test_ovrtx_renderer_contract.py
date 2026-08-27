@@ -99,6 +99,7 @@ def test_ovrtx_renderer_config_enables_supported_runtime_options(monkeypatch: py
     monkeypatch.setattr(ovrtx_renderer_module, "RendererConfig", RecordingRendererConfig)
     monkeypatch.setattr(ovrtx_renderer_module, "Renderer", lambda config: object())  # noqa: ARG005
     monkeypatch.setattr(ovrtx_renderer_module, "ovrtx_use_ovstage_enabled", lambda: False)
+    monkeypatch.setattr(ovrtx_renderer_module, "validate_installed_ovrtx_ovstage", lambda: None)
 
     renderer = OVRTXRenderer(OVRTXRendererCfg())
 

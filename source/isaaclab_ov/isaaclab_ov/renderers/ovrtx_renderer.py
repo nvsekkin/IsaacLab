@@ -85,7 +85,7 @@ from .ovrtx_annotator_utils import (
     decode_stable_id_map,
     decode_stable_id_semantic_id_map,
 )
-from .ovrtx_compat import RENDER_VAR_FRAME_KEYS
+from .ovrtx_compat import RENDER_VAR_FRAME_KEYS, validate_installed_ovrtx_ovstage
 from .ovrtx_mapping import cuda_device_id
 from .ovrtx_renderer_cfg import OVRTXRendererCfg
 from .ovrtx_renderer_kernels import (
@@ -322,6 +322,7 @@ class OVRTXRenderer(BaseRenderer):
         }
 
     def __init__(self, cfg: OVRTXRendererCfg):
+        validate_installed_ovrtx_ovstage()
         self.cfg = cfg
         self._device = "cuda:0"  # default; overridden by create_render_data(spec)
         self._render_product_paths = []
